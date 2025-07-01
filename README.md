@@ -31,13 +31,13 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Exited (
 73045fce47d0   ubuntu          "/bin/bash"              3 weeks ago   Exited (255) 9 days ago                                                             rensyuu
 5d247f373fa2   hello-world     "/hello"                 3 weeks ago   Exited (0) 2 weeks ago　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　  suspicious_lovelace
 
----
+```
 
 ## 構成について
 
 この学習用プロジェクトは、内部ネットワークとDMZを意識して作ったものです。
 
-### ネットワークの区分
+### コンテナの区分
 
 - **DMZ**（非武装地帯）
   - webserv (Webサーバ)
@@ -56,10 +56,45 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Exited (
 - **mydb**  
   データベースコンテナ。  
 - **locl_serv**  
-  内部のサーバ機能を持つコンテナ。  
+  内部でのサーバ機能を持つコンテナ。  
 
-### 注意点
+```
+##ネットワーク一覧
+```bash
+$ docker network ls
+NETWORK ID     NAME                           DRIVER    SCOPE
+152dad7fe181   bridge                         bridge    local
+a908670cf30b   client-net                     bridge    local
+15f6afe0212b   docker_network_project_mynet   bridge    local
+ab501f221595   host                           host      local
+6d5131446d23   none                           null      local
+09f9b00bb76a   prac-net                       bridge    local
+f35992645f42   system32_mynet                 bridge    local
+d3406781de7b   test-net                       bridge    local
 
-- この環境はインターネット非接続です。  
-- セキュリティ対策は未実施のため実運用には適しません。  
-- 学習用の構成としてのみ使用してください。
+```
+###各ネットワークについて
+
+--Dockerをインストールすると入ってるネットワーク--
+152dad7fe181   bridge                         bridge    local
+ab501f221595   host                           host      local
+6d5131446d23   none                           null      local
+
+--DMZを構築する用のネットワーク--
+
+09f9b00bb76a   prac-net                       bridge    local
+
+--内部ネットワーク(クライアント、データベース、サーバのコンテナを構築する用)--
+
+a908670cf30b   client-net                     bridge    local
+
+--内部ネットワークの通信確認用ネットワーク--
+
+d3406781de7b   test-net                       bridge    local
+
+--現在使用してないネットワーク--
+
+以下のネットワークは過去の学習で作成されたもので、現在は使われてません
+
+f35992645f42   system32_mynet                 bridge    local
+
