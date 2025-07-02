@@ -1,6 +1,6 @@
 # network-practice
 
-このリポジトリはDocker Composeを用いて仮想ネットワークを構築する"学習用"プロジェクトです。
+このリポジトリはDocker Composeを用いてDMZ(非武装地帯)と内部ネットワークを分離した仮想ネットワークを構築する"学習用"プロジェクトです。
 
 ---
 
@@ -29,36 +29,18 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About
 この学習用プロジェクトは、内部ネットワークとDMZを意識して作ったものです。
 
 ### コンテナの区分
+| コンテナ名         | 用途                     | 所属ネットワーク | 備考                              |
+|--------------------|--------------------------|------------------|-----------------------------------|
+| rensyuu            | 観測用コンテナ           | DMZ（prac-net）   | Ubuntuベース                      |
+| webserv            | 外部公開用Webサーバ      | DMZ（prac-net）   | nginx使用                         |
+| client_1           | クライアント端末         | 内部ネットワーク（client-net） | alpine使用                        |
+| mydb               | データベースコンテナ     | 内部ネットワーク（client-net） | MySQL、rootパスワード設定あり     |
+| my_local_server    | 内部向けサーバ           | 内部ネットワーク（client-net） | nginx使用、ポート8081で公開       |
 
-- **DMZ**（非武装地帯）
-  -rensyuu　(観測用コンテナ)
-  - webserv (Webサーバ)
 
-- **内部ネットワーク**
-  - client_1 (クライアント)
-  - mydb (データベース)
-  - my_local_server (サーバ)
 
-### 役割・説明
 
-- **webserv**
-  
-  外部からのアクセスを受けるWebサーバ。
-  
-- **client_1**
-  
-  内部ネットワークのクライアント端末。
-   
-- **mydb**
-  
-  データベースコンテナ。
-  
-- **my_local_server**
-  
-  内部でのサーバ機能を持つコンテナ。  
-
-```
-##ネットワーク一覧
+## ネットワーク一覧
 ```bash
 $ docker network ls
 NETWORK ID     NAME                           DRIVER    SCOPE
@@ -71,35 +53,48 @@ f35992645f42   system32_mynet                 bridge    local
 
 
 ```
-###各ネットワークについて
+## 各ネットワークについて
 
---Dockerをインストールすると入ってるネットワーク--
+bridge、host、noneは,いずれもDocker標準のデフォルトネットワークである。
 
-bridge
+| ネットワーク名       | 用途・役割                                         | 使用状況         |
+|----------------------|----------------------------------------------------|------------------|
+| bridge               | Docker標準のデフォルトネットワーク                 | 自動作成 / 使用中 |
+| host                 | ホストネットワーク（コンテナとホストを統一）       | 自動作成 / 使用中 |
+| none                 | ネットワークなし                                   | 自動作成 / 使用中 |
+| prac-net             | DMZ（非武装地帯）用。Webサーバ・観測用コンテナ用   | 使用中           |
+| client-net           | 内部ネットワーク。クライアント・DB・内部サーバ用   | 使用中           |
+| system32_mynet       | 過去の学習で作成したネットワーク                   | **未使用**        |
 
-host
-
-none                          
-
---DMZを構築する用のネットワーク--
-
-　　prac-net     
-
---内部ネットワーク(クライアント、データベース、サーバのコンテナを構築する用)--
-　　
-  
-  　client-net                   
-                     
---現在使用してないネットワーク--
-
-以下のネットワークは過去の学習で作成されたもので、現在は使われてません
-
-　　system32_mynet               
 
 ---
+
+## 構築をする際の環境設定
+- wslのインストール
+  - 初回セットアップ時、パスワードを設定する必要があります。このパスワードは、Linux環境で'sudo'コマンドを使う際に必要です。
+  - このパスワードはお使いのデバイスにログインする際のパスワードとは別物です。
+```bash
+
+$wsl --install
+
+```
+
+  - wsl --install` コマンド実行後は、**PCの再起動が必要**です。
+    
+- wslインスタンスに入る
+  - 再起動しないとwslの機能が正しく動作しない場合があります。
+  - 再起動後に、再度操作を試みてください
+    
+```bash
+
+$wsl --distribution Ubuntu
+
+```
+以下の構築の流れは、wslインスタンスに入った後に行う操作である。
+
 ## 構築の流れ
 
-## DMZ用ネットワークの作成
+- DMZ用ネットワークの作成
 
 ```bash
 
@@ -123,6 +118,7 @@ $docker run -dit --name webserv --network prac-net nginx
 ```
 
 ## 内部ネットワークの構築の流れ
+
 - 内部ネットワークの作成
 ```bash
 $docker network create client-net
@@ -145,7 +141,7 @@ $docker run -dit --name mydb --network client-net -e MYSQL_ROOT_PASSWORD=oajsmi 
 - サーバの作成
 
 ```bash
-$docker run -dit --name　my_local_server --network client-net -p 8081:80 nginx
+$docker run -dit --name my_local_server --network client-net -p 8081:80 nginx
 
 ```
 
