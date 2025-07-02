@@ -96,3 +96,57 @@ none
 
 　　system32_mynet               
 
+---
+## 構築の流れ
+
+## DMZ用ネットワークの作成
+
+```bash
+
+$docker network create prac-net
+
+```
+- 観測用コンテナの作成
+
+```bash
+
+$docker run -dit --name rensyuu --network prac-net ubuntu:20.04
+
+```
+
+- webサーバの作成
+
+```bash
+
+$docker run -dit --name webserv --network prac-net nginx
+
+```
+
+## 内部ネットワークの構築の流れ
+- 内部ネットワークの作成
+```bash
+$docker network create client-net
+
+```
+- クライアントのコンテナの作成
+
+```bash
+$docker run -dit --name client_1 --network client-net alpine
+
+```
+
+- データベースのコンテナ作成
+
+```bash
+$docker run -dit --name mydb --network client-net -e MYSQL_ROOT_PASSWORD=oajsmi mysql:latest
+
+```
+
+- サーバの作成
+
+```bash
+$docker run -dit --name　my_local_server --network client-net -p 8081:80 nginx
+
+```
+
+  
