@@ -10,7 +10,12 @@
 - 実際の環境でこの構成をそのまま使用することは、重大なセキュリティリスクを伴います。  
 - この環境は学習用です。
 
-```
+
+
+### 構成の目的
+- 外部と頻繁に通信を行うWebサーバなどをDMZ（非武装地帯）に分離し、  
+  内部ネットワークの安全性を高めるための構成です。
+　
 
 ## Docker コンテナ一覧
 
@@ -95,6 +100,8 @@ $wsl --distribution Ubuntu
 ## 構築の流れ
 
 - DMZ用ネットワークの作成
+  
+  外に公開するサイトなどの管理
 
 ```bash
 
@@ -103,6 +110,8 @@ $docker network create prac-net
 ```
 - 観測用コンテナの作成
 
+  webサーバなどへのアクセス確認用に作成。
+
 ```bash
 
 $docker run -dit --name rensyuu --network prac-net ubuntu:20.04
@@ -110,6 +119,8 @@ $docker run -dit --name rensyuu --network prac-net ubuntu:20.04
 ```
 
 - webサーバの作成
+
+  webサイトの表示などの制御用で作成。
 
 ```bash
 
@@ -120,11 +131,19 @@ $docker run -dit --name webserv --network prac-net nginx
 ## 内部ネットワークの構築の流れ
 
 - 内部ネットワークの作成
+
+　外に公開しない情報を扱うネットワークの作成。
+  
 ```bash
 $docker network create client-net
 
 ```
 - クライアントのコンテナの作成
+  
+  内部ネットワークに接続されたクライアント端末を模したコンテナの作成。
+  
+  疎通確認やアプリケーションの動作検証などに使用。
+ 
 
 ```bash
 $docker run -dit --name client_1 --network client-net alpine
@@ -133,12 +152,16 @@ $docker run -dit --name client_1 --network client-net alpine
 
 - データベースのコンテナ作成
 
+  外部に公開しない情報を入れるためのコンテナ作成。
+  
 ```bash
 $docker run -dit --name mydb --network client-net -e MYSQL_ROOT_PASSWORD=oajsmi mysql:latest
 
 ```
 
 - サーバの作成
+
+  外に公開しない情報への通信をするためのコンテナとして作成。
 
 ```bash
 $docker run -dit --name my_local_server --network client-net -p 8081:80 nginx
