@@ -52,7 +52,7 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About
   内部ネットワークのクライアント端末。  
 - **mydb**  
   データベースコンテナ。  
-- **locl_serv**  
+- **my_local_server**  
   内部でのサーバ機能を持つコンテナ。  
 
 ```
