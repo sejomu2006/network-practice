@@ -46,13 +46,17 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About
 
 ### 役割・説明
 
-- **webserv**  
+- **webserv**
+  
   外部からのアクセスを受けるWebサーバ。  
-- **client_1**  
+- **client_1**
+  
   内部ネットワークのクライアント端末。  
-- **mydb**  
+- **mydb**
+  
   データベースコンテナ。  
-- **my_local_server**  
+- **my_local_server**
+  
   内部でのサーバ機能を持つコンテナ。  
 
 ```
