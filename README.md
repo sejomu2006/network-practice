@@ -79,19 +79,19 @@ ab501f221595   host                           host      local
 
 --DMZを構築する用のネットワーク--
 
-09f9b00bb76a   prac-net                       bridge    local
+　　prac-net     
 
 --内部ネットワーク(クライアント、データベース、サーバのコンテナを構築する用)--
-
-a908670cf30b   client-net                     bridge    local
+　
+　　client-net                   
 
 --内部ネットワークの通信確認用ネットワーク--
 
-d3406781de7b   test-net                       bridge    local
+　　test-net                      
 
 --現在使用してないネットワーク--
 
 以下のネットワークは過去の学習で作成されたもので、現在は使われてません
 
-f35992645f42   system32_mynet                 bridge    local
+　　system32_mynet               
 
