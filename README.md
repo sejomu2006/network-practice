@@ -15,22 +15,19 @@
 ## Docker コンテナ一覧
 
 ```bash
-$ docker ps -a
-CONTAINER ID   IMAGE           COMMAND                  CREATED       STATUS                       PORTS                                                  NAMES
-d202ab96982e   nginx:latest    "/docker-entrypoint.…"   5 days ago    Exited (255) 9 seconds ago   0.0.0.0:8080->80/tcp, [::]:8080->80/tcp                docker_network_project_web_1
-8ec36a408637   mysql:5.7       "docker-entrypoint.s…"   5 days ago    Exited (255) 9 seconds ago   0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   docker_network_project_db_1
-36080defcebe   alpine:latest   "sh -c 'while true; …"   5 days ago    Exited (255) 9 seconds ago                                                          docker_network_project_client_1
-a4f992aa6c47   alpine:latest   "sh -c 'while true; …"   2 weeks ago   Exited (255) 9 days ago                                                             system32_client_1
-9f361f9b4ad7   nginx:latest    "/docker-entrypoint.…"   2 weeks ago   Created                                                                             9f361f9b4ad7_system32_web_1
-d9d9d40218bf   alpine          "sh"                     2 weeks ago   Exited (255) 9 days ago                                                             client
-dae2c5e26a6b   mysql:5.7       "docker-entrypoint.s…"   2 weeks ago   Exited (255) 9 days ago      3306/tcp, 33060/tcp                                    db
-0e88740c8fa7   nginx           "/docker-entrypoint.…"   2 weeks ago   Exited (255) 9 days ago      0.0.0.0:8080->80/tcp, [::]:8080->80/tcp                locl_serv
-0745b0683a77   mysql:latest    "docker-entrypoint.s…"   2 weeks ago   Exited (255) 9 days ago      3306/tcp, 33060/tcp                                    mydb
-2e23393015d1   alpine          "/bin/sh"                2 weeks ago   Exited (255) 9 days ago                                                             client_1
-a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Exited (255) 9 days ago      80/tcp                                                 webserv
-73045fce47d0   ubuntu          "/bin/bash"              3 weeks ago   Exited (255) 9 days ago                                                             rensyuu
-5d247f373fa2   hello-world     "/hello"                 3 weeks ago   Exited (0) 2 weeks ago　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　  suspicious_lovelace
-
+$ docker ps
+CONTAINER ID   IMAGE           COMMAND                  CREATED       STATUS              PORTS                                                  NAMES
+62d0ff70348f   nginx           "/docker-entrypoint.…"   7 hours ago   Up 2 minutes        0.0.0.0:8081->80/tcp, [::]:8081->80/tcp                my_local_server
+d202ab96982e   nginx:latest    "/docker-entrypoint.…"   6 days ago    Up 2 minutes        0.0.0.0:8080->80/tcp, [::]:8080->80/tcp                docker_network_project_web_1
+8ec36a408637   mysql:5.7       "docker-entrypoint.s…"   6 days ago    Up 2 minutes        0.0.0.0:3306->3306/tcp, :::3306->3306/tcp, 33060/tcp   docker_network_project_db_1
+36080defcebe   alpine:latest   "sh -c 'while true; …"   6 days ago    Up About a minute                                                          docker_network_project_client_1
+a4f992aa6c47   alpine:latest   "sh -c 'while true; …"   2 weeks ago   Up About a minute                                                          system32_client_1
+d9d9d40218bf   alpine          "sh"                     2 weeks ago   Up About a minute                                                          client
+dae2c5e26a6b   mysql:5.7       "docker-entrypoint.s…"   2 weeks ago   Up About a minute   3306/tcp, 33060/tcp                                    db
+0745b0683a77   mysql:latest    "docker-entrypoint.s…"   2 weeks ago   Up About a minute   3306/tcp, 33060/tcp                                    mydb
+2e23393015d1   alpine          "/bin/sh"                2 weeks ago   Up About a minute                                                          client_1
+a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About a minute   80/tcp                                                 webserv
+73045fce47d0   ubuntu          "/bin/bash"              3 weeks ago   Up About a minute                                                          rensyuu
 ```
 
 ## 構成について
