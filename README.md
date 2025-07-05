@@ -21,12 +21,13 @@
 
 ```bash
 $ docker ps
-CONTAINER ID   IMAGE           COMMAND                  CREATED       STATUS              PORTS                                                  NAMES
-62d0ff70348f   nginx           "/docker-entrypoint.…"   7 hours ago   Up 2 minutes        0.0.0.0:8081->80/tcp, [::]:8081->80/tcp                my_local_server
-0745b0683a77   mysql:latest    "docker-entrypoint.s…"   2 weeks ago   Up About a minute   3306/tcp, 33060/tcp                                    mydb
-2e23393015d1   alpine          "/bin/sh"                2 weeks ago   Up About a minute                                                          client_1
-a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About a minute   80/tcp                                                 webserv
-73045fce47d0   ubuntu          "/bin/bash"              3 weeks ago   Up About a minute                                                          rensyuu
+CONTAINER ID   IMAGE          COMMAND                  CREATED         STATUS                      PORTS                                                    NAMES
+fb431995603c   mysql:latest   "docker-entrypoint.s…"   8 seconds ago   Up 8 seconds                33060/tcp, 0.0.0.0:3307->3306/tcp, [::]:3307->3306/tcp   dmz-db-c
+62d0ff70348f   nginx          "/docker-entrypoint.…"   3 days ago      Up 29 minutes               0.0.0.0:8081->80/tcp, [::]:8081->80/tcp                  my_local_server
+0745b0683a77   mysql:latest   "docker-entrypoint.s…"   3 weeks ago     Up 29 minutes               3306/tcp, 33060/tcp                                      mydb
+2e23393015d1   alpine         "/bin/sh"                3 weeks ago     Up 29 minutes                                                                        client_1
+a6a29141d5e7   nginx          "/docker-entrypoint.…"   3 weeks ago     Up 29 minutes               80/tcp                                                   webserv
+73045fce47d0   ubuntu         "/bin/bash"              3 weeks ago     Up 29 minutes                                                                        rensyuu
 ```
 
 ## 構成について
@@ -36,10 +37,11 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About
 ### コンテナの区分
 | コンテナ名         | 用途                     | 所属ネットワーク | 備考                              |
 |--------------------|--------------------------|------------------|-----------------------------------|
+| dmz-db-c           | データベースコンテナ       | DMZ用データベース（dmz-db）   | MySQL、rootパスワード設定あり                  |
 | rensyuu            | 観測用コンテナ           | DMZ（prac-net）   | Ubuntuベース                      |
 | webserv            | 外部公開用Webサーバ      | DMZ（prac-net）   | nginx使用                         |
 | client_1           | クライアント端末         | 内部ネットワーク（client-net） | alpine使用                        |
-| mydb               | データベースコンテナ     | 内部ネットワーク（client-net） | MySQL、rootパスワード設定あり     |
+| mydb               | 内部向けデータベースコンテナ     | 内部ネットワーク（client-net） | MySQL、rootパスワード設定あり     |
 | my_local_server    | 内部向けサーバ           | 内部ネットワーク（client-net） | nginx使用、ポート8081で公開       |
 
 
@@ -47,15 +49,16 @@ a6a29141d5e7   nginx           "/docker-entrypoint.…"   3 weeks ago   Up About
 
 ## ネットワーク一覧
 ```bash
-$ docker network ls
+$  docker network ls
 NETWORK ID     NAME                           DRIVER    SCOPE
-152dad7fe181   bridge                         bridge    local
+b6efb3f30ff0   bridge                         bridge    local
 a908670cf30b   client-net                     bridge    local
+e0e6aa3e4816   dmz-db                         bridge    local
+15f6afe0212b   docker_network_project_mynet   bridge    local
 ab501f221595   host                           host      local
 6d5131446d23   none                           null      local
 09f9b00bb76a   prac-net                       bridge    local
 f35992645f42   system32_mynet                 bridge    local
-
 
 ```
 ## 各ネットワークについて
@@ -70,6 +73,7 @@ bridge、host、noneは,いずれもDocker標準のデフォルトネットワ�
 | prac-net             | DMZ（非武装地帯）用。Webサーバ・観測用コンテナ用   | 使用中           |
 | client-net           | 内部ネットワーク。クライアント・DB・内部サーバ用   | 使用中           |
 | system32_mynet       | 過去の学習で作成したネットワーク                   | **未使用**        |
+| dmz-db          　　　|　dmz用データベース、webサーバ　　　　　　　　　　　　   | 使用中           |
 
 
 ---
@@ -127,6 +131,39 @@ $docker run -dit --name rensyuu --network prac-net ubuntu:20.04
 $docker run -dit --name webserv --network prac-net nginx
 
 ```
+
+- DMZ用データベース作成
+  -ネットワーク作成
+  ```bash
+  $docker network create dmz-db
+
+  ```
+
+- データベースコンテナ作成
+
+ ※password=　の後には、任意のパスワードを書く
+
+ ```bash
+  
+ $ docker run -d \
+   --name dmz-db-c \
+   -e MYSQL_ROOT_PASSWORD= \      
+   -e MYSQL_DATABASE=mydatabase \
+   -e MYSQL_USER=user1 \
+   -e MYSQL_PASSWORD=userpass \
+   --network dmz-db \
+   -p 3307:3306 \
+  mysql:latest
+
+  ```
+
+
+
+- DMZ用に作成したwebサーバを同じネットワークに追加
+   ```bash
+   $ docker network connect dmz-db webserv
+   ```
+  
 
 ## 内部ネットワークの構築の流れ
 
@@ -271,3 +308,154 @@ round-trip min/avg/max = 0.084/0.114/0.242 ms
 ```
 
 15回通信を試みた。また、15回すべてで、通信は成功している。
+
+
+- DMZ用データベースの通信の確認
+
+  これについては未実施である。
+
+## ポートスキャン
+
+それぞれのコンテナについてのポートを調べる。
+
+---
+
+- dmz-db-c
+
+```bash
+$ nmap -p- 172.20.0.2
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:23 JST
+Nmap scan report for 172.20.0.2
+Host is up (0.000074s latency).
+Not shown: 65533 closed tcp ports (conn-refused)
+PORT      STATE SERVICE
+3306/tcp  open  mysql
+33060/tcp open  mysqlx
+
+Nmap done: 1 IP address (1 host up) scanned in 2.30 seconds
+
+```
+
+
+- my_local_server
+```bash
+$ nmap -p- 172.19.0.2
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:24 JST
+Nmap scan report for 172.19.0.2
+Host is up (0.000069s latency).
+Not shown: 65534 closed tcp ports (conn-refused)
+＼PORT   STATE SERVICE
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 1.86 seconds
+```
+
+- mydb
+
+```bash
+$ nmap -p- 172.19.0.3
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:25 JST
+Nmap scan report for 172.19.0.3
+Host is up (0.000072s latency).
+Not shown: 65533 closed tcp ports (conn-refused)
+PORT      STATE SERVICE
+3306/tcp  open  mysql
+33060/tcp open  mysqlx
+
+Nmap done: 1 IP address (1 host up) scanned in 2.09 seconds
+
+```
+
+- client_1
+
+```bash
+
+$ nmap -p- 172.19.0.4
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:26 JST
+Nmap scan report for 172.19.0.4
+Host is up (0.000077s latency).
+All 65535 scanned ports on 172.19.0.4 are in ignored states.
+Not shown: 65535 closed tcp ports (conn-refused)
+
+Nmap done: 1 IP address (1 host up) scanned in 2.08 seconds
+
+```
+
+- webserv (dmz-dbネットワーク)
+
+```bash
+$ nmap -p- 172.20.0.3
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:26 JST
+Nmap scan report for 172.20.0.3
+Host is up (0.000094s latency).
+Not shown: 65534 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 1.74 seconds
+```
+
+- webserv (prac-netネットワーク)
+
+
+```bash
+
+$ nmap -p- 172.18.0.2
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:27 JST
+Nmap scan report for 172.18.0.2
+Host is up (0.000074s latency).
+Not shown: 65534 closed tcp ports (conn-refused)
+PORT   STATE SERVICE
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 1.83 seconds
+
+```
+
+ - rensyuu
+
+
+```bash
+$ nmap -p- 172.18.0.3
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-07-04 16:28 JST
+Nmap scan report for 172.18.0.3
+Host is up (0.000067s latency).
+All 65535 scanned ports on 172.18.0.3 are in ignored states.
+Not shown: 65535 closed tcp ports (conn-refused)
+
+Nmap done: 1 IP address (1 host up) scanned in 2.24 seconds
+```
+
+# Nmapスキャン結果まとめ
+
+## DMZネットワーク（dmz-db）
+
+| コンテナ名   | IPアドレス   | 開いているポート            | 備考             |
+|--------------|--------------|-----------------------------|------------------|
+| dmz-db-c     | 172.20.0.2   | 3306/tcp, 33060/tcp         | MySQL稼働中      |
+| webserv      | 172.20.0.3   | 80/tcp                      | HTTP稼働中       |
+
+## 内部ネットワーク（prac-net）
+
+| コンテナ名     | IPアドレス   | 開いているポート            | 備考               |
+|----------------|--------------|-----------------------------|--------------------|
+| mydb           | 172.19.0.3   | 3306/tcp, 33060/tcp         | MySQL稼働中        |
+| my_local_server| 172.19.0.2   | 80/tcp                      | Webサーバ稼働中    |
+| client_1       | 172.19.0.4   | なし（全ポート閉じている） | 接続検証未実施     |
+
+## その他ネットワーク（prac-netなど）
+
+| コンテナ名 | IPアドレス   | ポート        | 備考         |
+|------------|--------------|---------------|--------------|
+| webserv    | 172.18.0.2   | 80/tcp        | 複数NW所属    |
+| rensyuu    | 172.18.0.3   | なし          | 実験用        |
+
+---
+
+## 通信確認状況
+
+- `dmz-db-c` → **Nmapでポート開放は確認済み**
+- **MySQL接続（例：mysql -h ...）は未実施**
+- `client_1` → ping確認済み（通信可能）
+- `webserv` → DMZ/内部ネットワークの両方でWebアクセス可能
+
